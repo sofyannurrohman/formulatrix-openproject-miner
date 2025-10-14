@@ -1,0 +1,61 @@
+@model IEnumerable<OpenProductivity.Web.ViewModels.MemberStatisticVm>
+
+<h2>Team Productivity Overview</h2>
+
+<!-- Filter Form -->
+<form asp-action="Index" method="get" class="mb-3 row g-2">
+    <div class="col-md-3">
+        <input type="number" name="projectId" class="form-control" placeholder="Project ID" 
+               value="@Context.Request.Query["projectId"]" required />
+    </div>
+    <div class="col-md-3">
+        <input type="date" name="startPeriod" class="form-control" 
+               value="@Context.Request.Query["startPeriod"]" />
+    </div>
+    <div class="col-md-3">
+        <input type="date" name="endPeriod" class="form-control" 
+               value="@Context.Request.Query["endPeriod"]" />
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-primary w-100">Filter</button>
+    </div>
+</form>
+
+@if (ViewBag.Message != null)
+{
+    <div class="alert alert-info">@ViewBag.Message</div>
+}
+
+@if (Model != null && Model.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Member</th>
+                <th>Total Tasks</th>
+                <th>Completed</th>
+                <th>Rework</th>
+                <th>Avg Duration (days)</th>
+                <th>Productivity Score</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var stat in Model)
+        {
+            <tr>
+                <td>@stat.MemberName</td>
+                <td>@stat.TotalTasks</td>
+                <td>@stat.CompletedTasks</td>
+                <td>@stat.ReworkCount</td>
+                <td>@stat.AvgDurationDays.ToString("0.00")</td>
+                <td>@stat.ProductivityScore.ToString("0.00")</td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@stat.MemberId" 
+                       class="btn btn-primary btn-sm">Details</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
