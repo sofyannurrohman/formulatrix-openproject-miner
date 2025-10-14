@@ -1,298 +1,158 @@
-﻿@{
-    ViewData["Title"] = "Dashboard";
+﻿@model List<OpenProductivity.Web.DTOs.MemberStatisticDto>
+@{
+    ViewData["Title"] = "Project Dashboard";
+
+    var selectedProjectId = ViewBag.ProjectId as int?;
+    var selectedGoalPeriod = ViewBag.GoalPeriod as string;
+    var projects = ViewBag.Projects as List<(int Id, string Name)>;
+    var goalPeriods = ViewBag.GoalPeriods as List<string>;
 }
 
-<div class="space-y-6">
-
-    <!-- Project & Goal Period Selection -->
-    <div class="flex space-x-4 items-center">
-        <div>
-            <label class="block text-gray-700 mb-1">Select Project</label>
-            <select class="border rounded-lg px-3 py-2 w-60">
-                <option>Inventory</option>
-                <option>Meeting Room</option>
-            </select>
-        </div>
-        <div>
-            <label class="block text-gray-700 mb-1">Select Goal Period</label>
-            <select class="border rounded-lg px-3 py-2 w-60">
-                <option>2025-H1</option>
-                <option>2025-H2</option>
-            </select>
-        </div>
-    </div>
-    <!-- Charts Section -->
-    <div class="bg-white shadow rounded-lg p-6 mt-6">
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <!-- Horizontal Bar Chart: Avg Duration per Member -->
-            <div>
-                <h3 class="text-lg font-semibold mb-2">Average Duration per Member (Days)</h3>
-                <div class="w-full h-64 md:h-40">
-                    <canvas id="avgDurationChart"></canvas>
-                </div>
-            </div>
-
-            <!-- Pie Chart: Task Type Distribution -->
-            <div>
-                <h3 class="text-lg text-center font-semibold mb-2">Task Type Distribution</h3>
-                <div class="w-full h-64 md:h-40">
-                    <canvas id="taskTypeChart"></canvas>
-                </div>
-            </div>
-            <div class="bg-white shadow rounded-lg">
-                <h2 class="text-xl font-bold mb-4">Productivity Score Over Time</h2>
-                <div class="w-full h-64 md:h-40">
-                    <canvas id="lineChart"></canvas>
-                </div>
-            </div>
-        </div>
+<form method="get" class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Project Dropdown -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
+        <select name="projectId" class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Select Project</option>
+            @foreach (var project in projects)
+            {
+                <text>
+                    <option value="@project.Id" @(selectedProjectId.HasValue && selectedProjectId.Value == project.Id ? "selected" : "")>@project.Name</option>
+                </text>
+            }
+        </select>
     </div>
 
-    <!-- Team Productivity Summary -->
-    <div class="bg-white shadow rounded-lg p-6">
-        <h2 class="text-xl font-bold mb-4">Team Productivity Summary</h2>
+    <!-- Goal Period Dropdown -->
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Goal Period</label>
+        <select name="goalPeriod" class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="">Select Goal Period</option>
+            @foreach (var gp in goalPeriods)
+            {
+                <text>
+                    <option value="@gp" @(selectedGoalPeriod == gp ? "selected" : "")>@gp</option>
+                </text>
+            }
+        </select>
+    </div>
 
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+    <!-- Submit Button -->
+    <div class="flex items-end">
+        <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700">
+            Filter
+        </button>
+    </div>
+</form>
+
+@if (Model != null && Model.Any())
+{
+    <!-- Chart -->
+    <div class="mb-6">
+        <canvas id="productivityChart" style="height: 300px;"></canvas>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table id="memberTable" class="min-w-full bg-white border border-gray-200 rounded-md shadow-md">
+            <thead class="bg-blue-500">
                 <tr>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Member
-                    </th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Total
-                        User Stories</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Total
-                        Issues</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Avg
-                        Duration (Days)</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Tasks
-                        Completed</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">
-                        Productivity Score</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Actions
-                    </th>
+                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Member Name</th>
+                    <th class="px-4 py-2 text-center text-sm font-medium text-white">User Stories</th>
+                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Issues</th>
+                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Completed Tasks</th>
+                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Avg Duration (days)</th>
+                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Rework Count</th>
+                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Productivity Score</th>
+                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Action</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                <!-- Sample hardcoded data -->
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-2">John Doe</td>
-                    <td class="px-4 py-2">12</td>
-                    <td class="px-4 py-2">5</td>
-                    <td class="px-4 py-2">3.2</td>
-                    <td class="px-4 py-2">17</td>
-                    <td class="px-4 py-2">92</td>
-                    <td class="px-4 py-2"><button
-                            class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1 rounded-lg transition">
-                            <span>View Details</span>
-                        </button>
-
-                </tr>
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-2">Jane Smith</td>
-                    <td class="px-4 py-2">8</td>
-                    <td class="px-4 py-2">10</td>
-                    <td class="px-4 py-2">4.8</td>
-                    <td class="px-4 py-2">18</td>
-                    <td class="px-4 py-2">78</td>
-                    <td class="px-4 py-2"><button
-                            class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1 rounded-lg transition">
-                            <span>View Details</span>
-                        </button>
-
-                </tr>
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-2">Bob Wilson</td>
-                    <td class="px-4 py-2">15</td>
-                    <td class="px-4 py-2">3</td>
-                    <td class="px-4 py-2">2.9</td>
-                    <td class="px-4 py-2">18</td>
-                    <td class="px-4 py-2">95</td>
-                    <td class="px-4 py-2"><button
-                            class="flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-3 py-1 rounded-lg transition">
-                            <span>View Details</span>
-                        </button>
-
-                </tr>
+            <tbody class="divide-y divide-gray-200">
+                @foreach (var member in Model)
+                {
+                    <tr>
+                        <td class="px-4 py-2">@member.MemberName</td>
+                        <td class="px-4 py-2 text-center">@member.TotalUserStories</td>
+                        <td class="px-4 py-2 text-center">@member.TotalIssues</td>
+                        <td class="px-4 py-2 text-center">@member.CompletedTasks</td>
+                        <td class="px-4 py-2 text-center">@Math.Round(member.AvgDurationDays, 2)</td>
+                        <td class="px-4 py-2 text-center">@member.ReworkCount</td>
+                        <td class="px-4 py-2">
+                            <div class="w-full bg-gray-200 rounded-full h-4 relative">
+                                <div class="bg-green-500 h-4 rounded-full" style="width:@member.ProductivityScore%"></div>
+                                <span class="absolute right-1 top-0 text-xs font-semibold text-white">@Math.Round(member.ProductivityScore, 1)</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-2 text-center">
+                            <a class="inline-block bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600"
+                               href="@Url.Action("MemberTasks", "Home", new { projectId = selectedProjectId, memberId = member.MemberId, goalPeriod = selectedGoalPeriod })">
+                                👁️ View Task
+                            </a>
+                        </td>
+                    </tr>
+                }
             </tbody>
         </table>
     </div>
-
-    <!-- Member Details Drill-Down -->
-    <div class="bg-white shadow rounded-lg p-6 mt-6">
-        <h2 class="text-xl font-bold mb-4">Task Details for John Doe</h2>
-
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Subject
-                    </th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Start
-                    </th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">End</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Duration
-                        (Days)</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Status
-                        History</th>
-                    <th class="px-4 py-2 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Notes
-                    </th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-2">57175</td>
-                    <td class="px-4 py-2">User Story</td>
-                    <td class="px-4 py-2">Implement Login Feature</td>
-                    <td class="px-4 py-2">2025-09-01 09:00</td>
-                    <td class="px-4 py-2">2025-09-05 16:00</td>
-                    <td class="px-4 py-2">4.3</td>
-                    <td class="px-4 py-2">In Progress → Developed → Done</td>
-                    <td class="px-4 py-2">No rework</td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-2">57176</td>
-                    <td class="px-4 py-2">Issue</td>
-                    <td class="px-4 py-2">Fix UI Bug</td>
-                    <td class="px-4 py-2">2025-09-10 10:00</td>
-                    <td class="px-4 py-2">2025-09-12 14:00</td>
-                    <td class="px-4 py-2">2.2</td>
-                    <td class="px-4 py-2">In Progress → Developed → Done</td>
-                    <td class="px-4 py-2">No rework</td>
-                </tr>
-                <tr class="hover:bg-gray-50">
-                    <td class="px-4 py-2">57177</td>
-                    <td class="px-4 py-2">User Story</td>
-                    <td class="px-4 py-2">API Integration</td>
-                    <td class="px-4 py-2">2025-09-15 08:00</td>
-                    <td class="px-4 py-2">2025-09-20 17:00</td>
-                    <td class="px-4 py-2">5.4</td>
-                    <td class="px-4 py-2">In Progress → Developed → In Progress → Done</td>
-                    <td class="px-4 py-2">Rework detected (1 loop)</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-</div>
+}
+else if (selectedProjectId != null && selectedGoalPeriod != null)
+{
+    <p class="text-gray-500 mt-4">No data available for selected project and goal period.</p>
+}
 
 @section Scripts {
     <script>
-        // Horizontal Bar Chart: Avg Duration per Member
-        const ctx1 = document.getElementById('avgDurationChart').getContext('2d');
-        const avgDurationChart = new Chart(ctx1, {
-            type: 'bar',
-            data: {
-                labels: ['John Doe', 'Jane Smith', 'Bob Wilson'],
-                datasets: [{
-                    label: 'Avg Duration (Days)',
-                    data: [3.2, 4.8, 2.9],
-                    backgroundColor: ['#3b82f6', '#ef4444', '#10b981']
-                }]
-            },
-            options: {
-                indexAxis: 'y', // horizontal bar
+        $(document).ready(function () {
+            // Initialize DataTable
+            $('#memberTable').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                pageLength: 10,
                 responsive: true,
-                plugins: {
-                    legend: { display: false },
-                    title: { display: false }
-                },
-                scales: {
-                    x: { beginAtZero: true },
-                    y: { ticks: { font: { size: 14 } } }
-                }
-            }
-        });
-
-        // Pie Chart: Task Type Distribution
-        const ctx2 = document.getElementById('taskTypeChart').getContext('2d');
-        const taskTypeChart = new Chart(ctx2, {
-            type: 'pie',
-            data: {
-                labels: ['User Story', 'Issue'],
-                datasets: [{
-                    label: 'Task Type',
-                    data: [35, 18], // hardcoded total tasks
-                    backgroundColor: ['#3b82f6', '#f59e0b']
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    title: { display: false }
-                }
-            }
-        });
-        // Line Chart: Productivity Score Over Time
-        const ctx3 = document.getElementById('lineChart').getContext('2d');
-        const lineChart = new Chart(ctx3, {
-            type: 'line',
-            data: {
-                labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5'],
-                datasets: [
-                    {
-                        label: 'John Doe',
-                        data: [85, 88, 90, 92, 94],
-                        borderColor: '#3b82f6',
-                        backgroundColor: '#3b82f6',
-                        tension: 0.3, // smooth curves
-                        fill: false,
-                        pointStyle: 'circle',
-                        pointRadius: 5,
-                        pointHoverRadius: 7
-                    },
-                    {
-                        label: 'Jane Smith',
-                        data: [75, 78, 80, 82, 78],
-                        borderColor: '#ef4444',
-                        backgroundColor: '#ef4444',
-                        tension: 0.3,
-                        fill: false,
-                        pointStyle: 'circle',
-                        pointRadius: 5,
-                        pointHoverRadius: 7
-                    },
-                    {
-                        label: 'Bob Wilson',
-                        data: [90, 92, 93, 95, 95],
-                        borderColor: '#10b981',
-                        backgroundColor: '#10b981',
-                        tension: 0.3,
-                        fill: false,
-                        pointStyle: 'circle',
-                        pointRadius: 5,
-                        pointHoverRadius: 7
-                    }
+                columnDefs: [
+                    { orderable: false, targets: 7 } // Disable sorting for Action column
                 ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    title: { display: false }
-                },
-                scales: {
-                    y: { beginAtZero: true, max: 100, title: { display: true, text: 'Productivity Score' } },
-                    x: { title: { display: true, text: 'Weeks' } }
-                }
-            }
-        });
+            });
 
+            // Prepare Chart.js data
+            const memberNames = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(m => m.MemberName)));
+            const productivityScores = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(m => Math.Round(m.ProductivityScore, 1))));
+            const completedTasks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(m => m.CompletedTasks)));
+
+            const ctx = document.getElementById('productivityChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: memberNames,
+                    datasets: [
+                        {
+                            label: 'Productivity Score (%)',
+                            data: productivityScores,
+                            backgroundColor: 'rgba(34, 197, 94, 0.7)',
+                            borderColor: 'rgba(34, 197, 94, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Completed Tasks',
+                            data: completedTasks,
+                            backgroundColor: 'rgba(59, 130, 246, 0.7)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // smaller height
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        });
     </script>
 }
-
-<script>
-$(document).ready(function() {
-    $('#productivityTable').DataTable({
-        paging: true,
-        searching: true,
-        ordering: true,
-        info: true,
-        lengthChange: true,
-        pageLength: 5
-    });
-});
-</script>

@@ -14,5 +14,6 @@ namespace OpenProductivity.Web.Interfaces
             int memberId,
             string goalPeriod,
             CancellationToken cancellationToken = default);
+
     }
 }

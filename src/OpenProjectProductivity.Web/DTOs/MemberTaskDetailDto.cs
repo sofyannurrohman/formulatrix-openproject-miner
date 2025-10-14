@@ -1,3 +1,5 @@
+namespace OpenProductivity.Web.DTOs;
+
 public class MemberTaskDetailsResponseDto
 {
     public int MemberId { get; set; }
