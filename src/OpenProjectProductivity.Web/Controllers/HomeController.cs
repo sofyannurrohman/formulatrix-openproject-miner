@@ -1,49 +1,57 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using OpenProjectProductivity.Web.Models;
+using OpenProductivity.Web.DTOs;
+using OpenProductivity.Web.Interfaces;
 
-namespace OpenProjectProductivity.Web.Controllers;
-
-public class HomeController : Controller
+namespace OpenProductivity.Web.Controllers
 {
-    private readonly ILogger<HomeController> _logger;
-
-    public HomeController(ILogger<HomeController> logger)
+    public class HomeController : Controller
     {
-        _logger = logger;
-    }
+        private readonly IProductivityStatisticService _statService;
+        private readonly IProjectService _projectService;
 
-    public IActionResult Index()
-    {
-        // Example: Replace this with real OpenProject API data
-        var tasks = new List<TaskViewModel>
+        public HomeController(
+            IProductivityStatisticService statService,
+            IProjectService projectService)
         {
-            new TaskViewModel { Name = "Design homepage", Owner = "Alice", Status = "Completed", DueDate = DateTime.Parse("2025-10-10") },
-            new TaskViewModel { Name = "API integration", Owner = "Bob", Status = "Pending", DueDate = DateTime.Parse("2025-10-12") },
-            new TaskViewModel { Name = "Write tests", Owner = "Charlie", Status = "Overdue", DueDate = DateTime.Parse("2025-10-08") }
-        };
+            _statService = statService;
+            _projectService = projectService;
+        }
 
-        // Calculate metrics
-        var totalTasks = tasks.Count;
-        var completedTasks = tasks.Count(t => t.Status == "Completed");
-        var pendingTasks = tasks.Count(t => t.Status == "Pending");
-        var productivityScore = totalTasks == 0 ? 0 : (int)((double)completedTasks / totalTasks * 100);
+        // Dashboard
+        public async Task<IActionResult> Index(int? projectId, string goalPeriod, CancellationToken cancellationToken = default)
+        {
+            ViewBag.ProjectId = projectId;
+            ViewBag.GoalPeriod = goalPeriod;
 
-        ViewData["TotalTasks"] = totalTasks;
-        ViewData["CompletedTasks"] = completedTasks;
-        ViewData["PendingTasks"] = pendingTasks;
-        ViewData["ProductivityScore"] = productivityScore;
+            // Fetch list of projects dynamically
+            var projects = await _projectService.GetAllProjectsAsync(cancellationToken);
+            ViewBag.Projects = projects.Select(p => (p.Id, p.Name)).ToList();
 
-        return View(tasks);
-    }
-    public IActionResult Privacy()
-    {
-        return View();
-    }
+            // Example goal periods (you could fetch from DB if needed)
+            ViewBag.GoalPeriods = new List<string> { "2025-H1", "2025-H2","2024-H1", "2024-H2","2023-H1", "2023-H2","2022-H1", "2022-H2", "2021-H1","2021-H2" };
 
-    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-    {
-        return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            // Fetch member statistics if project and goal period are selected
+            List<MemberStatisticDto> statistics = new();
+            if (projectId.HasValue && !string.IsNullOrEmpty(goalPeriod))
+            {
+                statistics = await _statService.GetProjectStatisticsAsync(projectId.Value, goalPeriod, cancellationToken);
+            }
+
+            return View(statistics);
+        }
+        public async Task<IActionResult> MemberTasks(int projectId, int memberId, string goalPeriod, CancellationToken cancellationToken = default)
+        {
+            if (projectId <= 0 || memberId <= 0 || string.IsNullOrEmpty(goalPeriod))
+                return BadRequest("Invalid parameters.");
+
+            // Fetch member task details from your statistic service
+            var memberTasks = await _statService.GetMemberTaskDetailsAsync(projectId, memberId, goalPeriod, cancellationToken);
+
+            if (memberTasks == null || memberTasks.Tasks == null || !memberTasks.Tasks.Any())
+                return View("MemberTasks", null); // or show a message in the view
+
+            return View(memberTasks);
+        }
+
     }
 }

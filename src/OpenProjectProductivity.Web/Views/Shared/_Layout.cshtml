@@ -7,34 +7,101 @@
     <title>@ViewData["Title"] - OpenProject Data Mining</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 </head>
 
-<body class="bg-gray-100 text-gray-800 font-sans">
+<body class="bg-gray-100 text-gray-800 font-sans flex">
 
-    <header class="bg-white shadow-md">
-        <div class="container mx-auto px-6 py-4 flex items-center justify-between">
-            <a class="text-xl font-bold text-blue-600" asp-area="" asp-controller="Home" asp-action="Index">
-                📈 OpenProject Data Mining
-            </a>
+    <!-- Sidebar -->
+    <aside id="sidebar"
+        class="fixed inset-y-0 left-0 w-64 bg-white shadow-md transform transition-transform duration-300 z-50">
+        <div class="p-6 flex justify-between items-center">
+            <a href="#" class="text-xl font-bold text-blue-600">📈 OpenProject</a>
+
+        </div>
+        <nav class="mt-6">
+            <ul>
+                <li class="p-4">
+                    <a href="/Dashboard/Index"
+                        class="block bg-blue-500 py-2 px-6 text-white hover:bg-blue-100 rounded transition">
+                        Dashboard
+                    </a>
+                </li>
+                <li class=" p-4">
+                    <a href="/Project/Productivity"
+                        class="block bg-blue-500 py-2 px-6 text-white hover:bg-blue-100 rounded transition">
+                        Project Productivity
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Overlay -->
+    <div id="overlay" class="fixed inset-0 hidden z-40" onclick="toggleSidebar()"></div>
+
+    <!-- Main content -->
+    <div id="main-content" class="flex-1 flex flex-col min-h-screen transition-all duration-300 ml-64">
+        <!-- Header -->
+        <header class="bg-white shadow-md flex items-center justify-between px-6 py-4">
+            <button onclick="toggleSidebar()" class="text-gray-700 text-2xl">
+                ☰
+            </button>
+            <span class="text-xl font-bold text-blue-600">@ViewData["Title"]</span>
             <form method="post" asp-controller="Account" asp-action="Logout">
                 <button type="submit"
                     class="flex items-center space-x-1 text-gray-700 hover:text-red-600 text-lg font-medium transition bg-transparent border-none p-0">
                     <span>🚪 Sign Out</span>
-                    <span class="sr-only">Sign Out</span> <!-- Accessibility -->
+                    <span class="sr-only">Sign Out</span>
                 </button>
             </form>
-        </div>
-    </header>
+        </header>
 
-    <main class="container mx-auto px-6 py-8">
-        @RenderBody()
-    </main>
+        <!-- Body -->
+        <main class="container mx-auto px-6 py-8 flex-1">
+            @RenderBody()
+        </main>
 
-    <footer class="bg-white shadow-inner border-t mt-12">
-        <div class="container mx-auto px-6 py-4 text-center text-gray-500 text-sm">
-            &copy; 2025 OpenProject Data Mining
-        </div>
-    </footer>
+        <!-- Footer -->
+        <footer class="bg-white shadow-inner border-t mt-12">
+            <div class="container mx-auto px-6 py-4 text-center text-gray-500 text-sm">
+                &copy; 2025 OpenProject Data Mining
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        let sidebarOpen = true;
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            const main = document.getElementById('main-content');
+
+            sidebarOpen = !sidebarOpen;
+
+            if (sidebarOpen) {
+                sidebar.classList.remove('-translate-x-64');
+                main.classList.add('ml-64');
+                main.classList.remove('ml-0');
+                overlay.classList.add('hidden');
+            } else {
+                sidebar.classList.add('-translate-x-64');
+                main.classList.remove('ml-64');
+                main.classList.add('ml-0');
+                overlay.classList.remove('hidden');
+            }
+        }
+
+        // Initialize sidebar open
+        document.addEventListener('DOMContentLoaded', () => {
+            toggleSidebar(); // optional if you want it closed by default
+            toggleSidebar(); // call twice to keep it open initially
+        });
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />

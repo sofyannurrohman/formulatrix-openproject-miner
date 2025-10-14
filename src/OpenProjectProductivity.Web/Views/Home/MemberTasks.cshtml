@@ -1,0 +1,71 @@
+@model OpenProductivity.Web.DTOs.MemberTaskDetailsResponseDto
+@{
+    ViewData["Title"] = "Member Tasks";
+}
+<div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold">@Model?.MemberName</h1>
+    <a href="@Url.Action("Index", "Home")" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+        Back to Dashboard
+    </a>
+</div>
+
+@if (Model?.Tasks != null && Model.Tasks.Any())
+{
+    <div class="overflow-x-auto">
+        <table id="tasksTable" class="min-w-full bg-white border border-gray-200 rounded-md shadow-md">
+            <thead class="bg-blue-500">
+                <tr>
+                    <th class="px-4 py-2 text-white text-center">Work Package ID</th>
+                    <th class="px-4 py-2 text-white text-center">Type</th>
+                    <th class="px-4 py-2 text-white text-center">Subject</th>
+                    <th class="px-4 py-2 text-white text-center">Start</th>
+                    <th class="px-4 py-2 text-white text-center">End</th>
+                    <th class="px-4 py-2 text-white text-center">Duration (days)</th>
+                    <th class="px-4 py-2 text-white text-center">Status History</th>
+                    <th class="px-4 py-2 text-white text-center">Notes</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+                @foreach (var task in Model.Tasks)
+                {
+                    <tr>
+                        <td class="px-4 py-2">@task.WorkPackageId</td>
+                        <td class="px-4 py-2">@task.Type</td>
+                        <td class="px-4 py-2">@task.Subject</td>
+                        <td class="px-4 py-2">@task.Start?.ToString("yyyy-MM-dd")</td>
+                        <td class="px-4 py-2">@task.End?.ToString("yyyy-MM-dd")</td>
+                        <td class="px-4 py-2">@task.DurationDays?.ToString("0.##")</td>
+                        <td class="px-4 py-2">@task.StatusHistory</td>
+                        <td class="px-4 py-2">@task.Notes</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <p class="text-gray-500 mt-4">No tasks found for this member.</p>
+}
+
+@section Scripts {
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#tasksTable').DataTable({
+                paging: true,
+                searching: true,
+                ordering: true,
+                info: true,
+                pageLength: 10,
+                responsive: true,
+                columnDefs: [
+                    { orderable: false, targets: [6, 7] } // StatusHistory and Notes columns not sortable
+                ]
+            });
+        });
+    </script>
+}

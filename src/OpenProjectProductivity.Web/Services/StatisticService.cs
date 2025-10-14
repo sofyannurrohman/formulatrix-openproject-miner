@@ -178,5 +178,17 @@ namespace OpenProductivity.Web.Services
         {
             return activities.Count(a => InProgressStatuses.Contains(a.ToStatus ?? "", StringComparer.OrdinalIgnoreCase)) - 1;
         }
+        public async Task<List<string>> GetAvailableGoalPeriodsAsync(int projectId, CancellationToken cancellationToken = default)
+        {
+            // Assume you have a DbContext _context with WorkPackages table
+            var periods = await _context.WorkPackages
+                .Where(wp => wp.ProjectId == projectId)
+                .Select(wp => wp.GoalPeriod) // this should match your work package column
+                .Distinct()
+                .OrderBy(p => p)
+                .ToListAsync(cancellationToken);
+
+            return periods;
+        }
     }
 }

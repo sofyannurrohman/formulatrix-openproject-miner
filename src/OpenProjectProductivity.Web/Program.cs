@@ -15,7 +15,7 @@ builder.Services.AddDbContext<OpenProjectContext>(options =>
 
 // Add statistics service
 builder.Services.AddScoped<IProductivityStatisticService, ProductivityStatisticService>();
-
+builder.Services.AddScoped<IProjectService, ProjectService>();
 // Optional: still keep HttpClient for future API integrations
 builder.Services.AddHttpClient("OpenProjectClient", client =>
 {
@@ -53,6 +53,6 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Dashboard}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
