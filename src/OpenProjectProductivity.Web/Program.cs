@@ -2,6 +2,8 @@ using Microsoft.EntityFrameworkCore;
 using OpenProductivity.Web.Data;
 using OpenProductivity.Web.Interfaces;
 using OpenProductivity.Web.Services;
+using OpenProjectProductivity.Web.Interfaces;
+using OpenProjectProductivity.Web.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,6 +18,7 @@ builder.Services.AddDbContext<OpenProjectContext>(options =>
 // Add statistics service
 builder.Services.AddScoped<IProductivityStatisticService, ProductivityStatisticService>();
 builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 // Optional: still keep HttpClient for future API integrations
 builder.Services.AddHttpClient("OpenProjectClient", client =>
 {

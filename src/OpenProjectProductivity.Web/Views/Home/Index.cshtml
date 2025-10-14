@@ -13,46 +13,54 @@
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
         <select name="projectId" class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
-            <option value="">Select Project</option>
-            @foreach (var project in projects)
-            {
-                <text>
-                    <option value="@project.Id" @(selectedProjectId.HasValue && selectedProjectId.Value == project.Id ? "selected" : "")>@project.Name</option>
-                </text>
-            }
-        </select>
+    <option value="">Select Project</option>
+    @foreach (var project in projects)
+    {
+        if (selectedProjectId.HasValue && selectedProjectId.Value == project.Id)
+        {
+            <option value="@project.Id" selected>@project.Name</option>
+        }
+        else
+        {
+            <option value="@project.Id">@project.Name</option>
+        }
+    }
+</select>
     </div>
 
     <!-- Goal Period Dropdown -->
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Goal Period</label>
         <select name="goalPeriod" class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
-            <option value="">Select Goal Period</option>
-            @foreach (var gp in goalPeriods)
-            {
-                <text>
-                    <option value="@gp" @(selectedGoalPeriod == gp ? "selected" : "")>@gp</option>
-                </text>
-            }
-        </select>
+    <option value="">Select Goal Period</option>
+    @foreach (var gp in goalPeriods)
+    {
+        if (selectedGoalPeriod == gp)
+        {
+            <option value="@gp" selected>@gp</option>
+        }
+        else
+        {
+            <option value="@gp">@gp</option>
+        }
+    }
+</select>
     </div>
 
     <!-- Submit Button -->
     <div class="flex items-end">
         <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700">
-            Filter
+            Find 🔍
         </button>
     </div>
 </form>
 
 @if (Model != null && Model.Any())
 {
-    <!-- Chart -->
     <div class="mb-6">
         <canvas id="productivityChart" style="height: 300px;"></canvas>
     </div>
 
-    <!-- Table -->
     <div class="overflow-x-auto">
         <table id="memberTable" class="min-w-full bg-white border border-gray-200 rounded-md shadow-md">
             <thead class="bg-blue-500">
@@ -70,6 +78,7 @@
             <tbody class="divide-y divide-gray-200">
                 @foreach (var member in Model)
                 {
+                    var memberUrl = Url.Action("MemberTasks", "Home", new { projectId = selectedProjectId, memberId = member.MemberId, goalPeriod = selectedGoalPeriod });
                     <tr>
                         <td class="px-4 py-2">@member.MemberName</td>
                         <td class="px-4 py-2 text-center">@member.TotalUserStories</td>
@@ -85,7 +94,7 @@
                         </td>
                         <td class="px-4 py-2 text-center">
                             <a class="inline-block bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600"
-                               href="@Url.Action("MemberTasks", "Home", new { projectId = selectedProjectId, memberId = member.MemberId, goalPeriod = selectedGoalPeriod })">
+                               href="@memberUrl">
                                 👁️ View Task
                             </a>
                         </td>
@@ -103,7 +112,6 @@ else if (selectedProjectId != null && selectedGoalPeriod != null)
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // Initialize DataTable
             $('#memberTable').DataTable({
                 paging: true,
                 searching: true,
@@ -111,12 +119,9 @@ else if (selectedProjectId != null && selectedGoalPeriod != null)
                 info: true,
                 pageLength: 10,
                 responsive: true,
-                columnDefs: [
-                    { orderable: false, targets: 7 } // Disable sorting for Action column
-                ]
+                columnDefs: [{ orderable: false, targets: 7 }]
             });
 
-            // Prepare Chart.js data
             const memberNames = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(m => m.MemberName)));
             const productivityScores = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(m => Math.Round(m.ProductivityScore, 1))));
             const completedTasks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(m => m.CompletedTasks)));
@@ -143,15 +148,7 @@ else if (selectedProjectId != null && selectedGoalPeriod != null)
                         }
                     ]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false, // smaller height
-                    plugins: {
-                        legend: { position: 'top' },
-                        tooltip: { mode: 'index', intersect: false }
-                    },
-                    scales: { y: { beginAtZero: true } }
-                }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } }, scales: { y: { beginAtZero: true } } }
             });
         });
     </script>
