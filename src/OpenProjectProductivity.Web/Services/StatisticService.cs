@@ -23,19 +23,16 @@ namespace OpenProductivity.Web.Services
 
         public async Task<List<MemberStatisticDto>> GetProjectStatisticsAsync(
             int projectId,
-            DateTime startPeriod,
-            DateTime endPeriod,
+            string goalPeriod,
             CancellationToken cancellationToken = default)
         {
             var workPackages = await _context.WorkPackages
-                .Where(wp => wp.ProjectId == projectId
-                             && wp.CreatedAt <= endPeriod
-                             && wp.UpdatedAt >= startPeriod)
+                .Where(wp => wp.ProjectId == projectId && wp.GoalPeriod == goalPeriod)
                 .Include(wp => wp.Activities)
                 .Include(wp => wp.Assignee)
                 .ToListAsync(cancellationToken);
 
-            _logger.LogInformation("Found {Count} work packages for project {ProjectId}", workPackages.Count, projectId);
+            _logger.LogInformation("Found {Count} work packages for project {ProjectId} with GoalPeriod {GoalPeriod}", workPackages.Count, projectId, goalPeriod);
 
             var grouped = workPackages.GroupBy(wp => wp.AssigneeId);
             var statistics = new List<MemberStatisticDto>();
@@ -44,9 +41,7 @@ namespace OpenProductivity.Web.Services
             {
                 var memberId = group.Key;
                 var memberName = group.FirstOrDefault()?.Assignee?.Name ?? "Unknown";
-
                 var memberTasks = group.ToList();
-                _logger.LogInformation("Member {MemberName} ({MemberId}) has {TaskCount} tasks", memberName, memberId, memberTasks.Count);
 
                 int totalUserStories = memberTasks.Count(wp => string.Equals(wp.Type, "User story", StringComparison.OrdinalIgnoreCase));
                 int totalIssues = memberTasks.Count(wp => string.Equals(wp.Type, "Issue", StringComparison.OrdinalIgnoreCase));
@@ -62,17 +57,18 @@ namespace OpenProductivity.Web.Services
                 double avgDurationDays = durations.Any() ? durations.Average() : 0;
                 int reworkTasks = memberTasks.Count(wp => DetectReworkLoop(wp.Activities));
 
-                // Set a baseline duration in days for a normal task
-                double baselineDuration = 5.0; // 5 days per task as a reference
+                // Baseline duration for a normal task
+                double baselineDuration = 10.0;
 
-                // Speed factor relative to baseline, capped at 2
-                double speedFactor = avgDurationDays > 0 ? Math.Min(baselineDuration / avgDurationDays, 2) : 1;
+                // Smooth speed factor: decreases more gently for longer tasks
+                double speedFactor = Math.Pow(baselineDuration / (avgDurationDays + 1), 0.5); // square root for smoother effect
 
-                // Compute productivity score
-                double productivityScore = (completedTasks * 10) * speedFactor - (reworkTasks * 5);
+                // Compute raw productivity
+                double productivityScore = (completedTasks * 10 * speedFactor) - (reworkTasks * 5);
 
-                // Clamp score between 0 and 100
+                // Clamp to 0–100
                 productivityScore = Math.Clamp(productivityScore, 0, 100);
+
                 statistics.Add(new MemberStatisticDto
                 {
                     MemberId = memberId,
@@ -92,43 +88,21 @@ namespace OpenProductivity.Web.Services
         public async Task<MemberTaskDetailsResponseDto> GetMemberTaskDetailsAsync(
             int projectId,
             int memberId,
-            DateTime startPeriod,
-            DateTime endPeriod,
+            string goalPeriod,
             CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Fetching tasks for Member {MemberId} in Project {ProjectId} between {Start} and {End}",
-                memberId, projectId, startPeriod, endPeriod);
-
-            // Include tasks if they overlap the period or have activities in the range
             var workPackages = await _context.WorkPackages
-                .Where(wp => wp.ProjectId == projectId
-                             && wp.AssigneeId == memberId
-                             && (
-                                 (wp.CreatedAt >= startPeriod && wp.CreatedAt <= endPeriod) ||
-                                 (wp.UpdatedAt >= startPeriod && wp.UpdatedAt <= endPeriod) ||
-                                 wp.Activities.Any(a => a.Timestamp >= startPeriod && a.Timestamp <= endPeriod)
-                             ))
+                .Where(wp => wp.ProjectId == projectId && wp.AssigneeId == memberId && wp.GoalPeriod == goalPeriod)
                 .Include(wp => wp.Activities)
                 .Include(wp => wp.Assignee)
                 .ToListAsync(cancellationToken);
 
-            _logger.LogInformation("Found {Count} tasks for member {MemberId}", workPackages.Count, memberId);
-
             var memberName = workPackages.FirstOrDefault()?.Assignee?.Name ?? "Unknown";
-
             var details = new List<MemberTaskDetailDto>();
 
             foreach (var wp in workPackages)
             {
-                _logger.LogDebug("Processing WorkPackage {WpId}: {Type} - {Subject}", wp.Id, wp.Type, wp.Subject);
-                _logger.LogDebug("CreatedAt={CreatedAt}, UpdatedAt={UpdatedAt}", wp.CreatedAt, wp.UpdatedAt);
-
                 var activities = wp.Activities.OrderBy(a => a.Timestamp).ToList();
-                foreach (var act in activities)
-                {
-                    _logger.LogDebug("Activity: {Timestamp} - {From} -> {To}", act.Timestamp, act.FromStatus, act.ToStatus);
-                }
-
                 var statusHistory = string.Join(" → ", activities.Select(a => a.ToStatus ?? "-"));
 
                 var inProgressTimestamp = activities
@@ -159,8 +133,6 @@ namespace OpenProductivity.Web.Services
                     Notes = reworkDetected ? $"Rework detected ({CountReworkLoops(activities)} loop(s))" : "No rework"
                 });
             }
-
-            _logger.LogInformation("Returning {Count} detailed tasks for member {MemberId}", details.Count, memberId);
 
             return new MemberTaskDetailsResponseDto
             {

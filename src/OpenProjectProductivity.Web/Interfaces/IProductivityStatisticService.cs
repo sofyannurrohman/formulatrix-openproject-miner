@@ -6,15 +6,13 @@ namespace OpenProductivity.Web.Interfaces
     {
         Task<List<MemberStatisticDto>> GetProjectStatisticsAsync(
             int projectId,
-            DateTime startPeriod,
-            DateTime endPeriod,
+            string goalPeriod,
             CancellationToken cancellationToken = default);
 
         Task<MemberTaskDetailsResponseDto> GetMemberTaskDetailsAsync(
             int projectId,
             int memberId,
-            DateTime startPeriod,
-            DateTime endPeriod,
+            string goalPeriod,
             CancellationToken cancellationToken = default);
     }
 }
