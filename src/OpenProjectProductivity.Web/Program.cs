@@ -1,43 +1,117 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using OpenProductivity.Web.Data;
 using OpenProductivity.Web.Interfaces;
 using OpenProductivity.Web.Services;
 using OpenProjectProductivity.Web.Interfaces;
+using OpenProjectProductivity.Web.Models;
 using OpenProjectProductivity.Web.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Add services to the container
 builder.Services.AddControllersWithViews();
 
-// Add EF DbContext
+// Configure SQLite + Identity with custom AuthUser
 builder.Services.AddDbContext<OpenProjectContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("OpenProjectDb")));
 
-// Add statistics service
-builder.Services.AddScoped<IProductivityStatisticService, ProductivityStatisticService>();
-builder.Services.AddScoped<IProjectService, ProjectService>();
-builder.Services.AddScoped<IDashboardService, DashboardService>();
-// Optional: still keep HttpClient for future API integrations
-builder.Services.AddHttpClient("OpenProjectClient", client =>
+builder.Services.AddIdentity<AuthUser, IdentityRole>(options =>
 {
-    client.BaseAddress = new Uri("https://openproject.formulatrix.com/api/v3/");
+    // Password settings
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = true;
+    options.Password.RequiredLength = 6;
+    options.Password.RequiredUniqueChars = 1;
 
-    // Basic Auth header (can be moved to appsettings.json later)
-    var username = "apikey";
-    var accessToken = "70e94dd4c1998dbaa0f918df8c2ab150e2ee71629c8fc3b2284329e2df030731";
-    var authValue = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{username}:{accessToken}"));
-    client.DefaultRequestHeaders.Authorization =
-        new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", authValue);
-});
-builder.Services.AddHttpClient("OpenProjectApi", client =>
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+
+    // User settings
+    options.User.RequireUniqueEmail = true;
+
+})
+.AddEntityFrameworkStores<OpenProjectContext>()
+.AddDefaultTokenProviders();
+
+// Register your application services
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IProductivityStatisticService, ProductivityStatisticService>();
+builder.Services.AddScoped<JwtService>();
+
+// JWT key
+var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
+
+// Authentication configuration
+builder.Services.AddAuthentication(options =>
 {
-    client.BaseAddress = new Uri("http://localhost:5066/"); // your API base url
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme; // MVC default
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;  // API default
+})
+.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+        ValidAudience = builder.Configuration["Jwt:Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(key)
+    };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnChallenge = context =>
+        {
+            context.HandleResponse();
+            context.Response.StatusCode = 401;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsync("{\"error\":\"Unauthorized\"}");
+        }
+    };
+})
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+{
+    options.LoginPath = "/Auth/Login";
+    options.AccessDeniedPath = "/Auth/AccessDenied";
+    options.ExpireTimeSpan = TimeSpan.FromHours(4);
+    options.SlidingExpiration = true;
+
+    // For localhost, allow non-HTTPS cookies
+    options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.None;
+    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+
+    options.Events = new CookieAuthenticationEvents
+    {
+        OnRedirectToLogin = context =>
+        {
+            if (context.Request.Path.StartsWithSegments("/api"))
+            {
+                context.Response.StatusCode = 401;
+                context.Response.ContentType = "application/json";
+                return context.Response.WriteAsync("{\"error\":\"Unauthorized\"}");
+            }
+
+            context.Response.Redirect(context.RedirectUri);
+            return Task.CompletedTask;
+        }
+    };
 });
+
 var app = builder.Build();
 
-// Configure middleware, routing, etc.
+// Middleware pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -46,16 +120,18 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
 app.UseRouting();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllerRoute(
-    name: "productivity",
-    pattern: "productivity/{action=Index}/{projectId?}",
-    defaults: new { controller = "Productivity" });
-
+// MVC routes
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Dashboard}/{action=Index}/{id?}");
+
+// Map API controllers
+app.MapControllers();
 
 app.Run();

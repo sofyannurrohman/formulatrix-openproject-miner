@@ -26,13 +26,13 @@
                 <li class="p-4">
                     <a href="/Dashboard/Index"
                         class="block bg-blue-500 py-2 px-6 text-white hover:bg-blue-100 rounded transition">
-                        Dashboard
+                        📄 Dashboard
                     </a>
                 </li>
                 <li class=" p-4">
                     <a href="/Home/Index"
                         class="block bg-blue-500 py-2 px-6 text-white hover:bg-blue-100 rounded transition">
-                        Project Productivity
+                        🕗 Project Productivity
                     </a>
                 </li>
             </ul>
@@ -50,7 +50,8 @@
                 ☰
             </button>
             <span class="text-xl font-bold text-blue-600">@ViewData["Title"]</span>
-            <form method="post" asp-controller="Account" asp-action="Logout">
+            <form method="post" asp-controller="Auth" asp-action="Logout">
+                @Html.AntiForgeryToken()
                 <button type="submit"
                     class="flex items-center space-x-1 text-gray-700 hover:text-red-600 text-lg font-medium transition bg-transparent border-none p-0">
                     <span>🚪 Sign Out</span>

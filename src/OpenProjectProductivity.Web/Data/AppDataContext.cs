@@ -1,26 +1,31 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using OpenProductivity.Web.Models;
+using OpenProjectProductivity.Web.Models;
 
 namespace OpenProductivity.Web.Data
 {
-    public class OpenProjectContext : DbContext
+    public class OpenProjectContext : IdentityDbContext<AuthUser>
     {
         public OpenProjectContext(DbContextOptions<OpenProjectContext> options)
             : base(options) { }
 
-        public DbSet<Project> Projects => Set<Project>();
+        // Domain entities
         public DbSet<User> Users => Set<User>();
+        public DbSet<Project> Projects => Set<Project>();
         public DbSet<WorkPackage> WorkPackages => Set<WorkPackage>();
         public DbSet<Activity> Activities => Set<Activity>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // WorkPackage -> Assignee
+            base.OnModelCreating(modelBuilder); // Important for Identity
+
+            // WorkPackage -> Assignee (domain user)
             modelBuilder.Entity<WorkPackage>()
                 .HasOne(w => w.Assignee)
                 .WithMany(u => u.AssignedWorkPackages)
                 .HasForeignKey(w => w.AssigneeId)
-                .OnDelete(DeleteBehavior.SetNull); // avoid FK issues if user deleted
+                .OnDelete(DeleteBehavior.SetNull);
 
             // WorkPackage -> Project
             modelBuilder.Entity<WorkPackage>()
@@ -36,12 +41,12 @@ namespace OpenProductivity.Web.Data
                 .HasForeignKey(a => a.WorkPackageId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Activity -> User (optional)
+            // Activity -> User (domain user)
             modelBuilder.Entity<Activity>()
-    .HasOne(a => a.User)
-    .WithMany(u => u.Activities)   // assuming User has ICollection<Activity> Activities
-    .HasForeignKey(a => a.UserId)
-    .OnDelete(DeleteBehavior.SetNull);
+                .HasOne(a => a.User)
+                .WithMany(u => u.Activities)
+                .HasForeignKey(a => a.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

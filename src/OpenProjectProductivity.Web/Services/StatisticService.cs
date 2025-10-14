@@ -40,7 +40,7 @@ namespace OpenProductivity.Web.Services
             foreach (var group in grouped)
             {
                 var memberId = group.Key;
-                var memberName = group.FirstOrDefault()?.Assignee?.Name ?? "Unknown";
+                var memberName = group.FirstOrDefault()?.Assignee?.Name ?? "Unassigned User";
                 var memberTasks = group.ToList();
 
                 int totalUserStories = memberTasks.Count(wp => string.Equals(wp.Type, "User story", StringComparison.OrdinalIgnoreCase));
@@ -97,7 +97,7 @@ namespace OpenProductivity.Web.Services
                 .Include(wp => wp.Assignee)
                 .ToListAsync(cancellationToken);
 
-            var memberName = workPackages.FirstOrDefault()?.Assignee?.Name ?? "Unknown";
+            var memberName = workPackages.FirstOrDefault()?.Assignee?.Name ?? "Unassigned User";
             var details = new List<MemberTaskDetailDto>();
 
             foreach (var wp in workPackages)

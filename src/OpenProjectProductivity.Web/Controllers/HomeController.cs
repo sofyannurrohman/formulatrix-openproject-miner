@@ -1,9 +1,13 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OpenProductivity.Web.DTOs;
 using OpenProductivity.Web.Interfaces;
+using System.Threading;
 
 namespace OpenProductivity.Web.Controllers
 {
+    // Use cookie authentication for MVC pages
+    [Authorize]
     public class HomeController : Controller
     {
         private readonly IProductivityStatisticService _statService;
@@ -27,8 +31,8 @@ namespace OpenProductivity.Web.Controllers
             var projects = await _projectService.GetAllProjectsAsync(cancellationToken);
             ViewBag.Projects = projects.Select(p => (p.Id, p.Name)).ToList();
 
-            // Example goal periods (you could fetch from DB if needed)
-            ViewBag.GoalPeriods = new List<string> { "2025-H1", "2025-H2","2024-H1", "2024-H2","2023-H1", "2023-H2","2022-H1", "2022-H2", "2021-H1","2021-H2" };
+            // Example goal periods
+            ViewBag.GoalPeriods = new List<string> { "2025-H1", "2025-H2", "2024-H1", "2024-H2", "2023-H1", "2023-H2", "2022-H1", "2022-H2", "2021-H1", "2021-H2" };
 
             // Fetch member statistics if project and goal period are selected
             List<MemberStatisticDto> statistics = new();
@@ -39,12 +43,13 @@ namespace OpenProductivity.Web.Controllers
 
             return View(statistics);
         }
+
         public async Task<IActionResult> MemberTasks(int projectId, int memberId, string goalPeriod, CancellationToken cancellationToken = default)
         {
             if (projectId <= 0 || memberId <= 0 || string.IsNullOrEmpty(goalPeriod))
                 return BadRequest("Invalid parameters.");
 
-            // Fetch member task details from your statistic service
+            // Fetch member task details
             var memberTasks = await _statService.GetMemberTaskDetailsAsync(projectId, memberId, goalPeriod, cancellationToken);
 
             if (memberTasks == null || memberTasks.Tasks == null || !memberTasks.Tasks.Any())
@@ -52,6 +57,5 @@ namespace OpenProductivity.Web.Controllers
 
             return View(memberTasks);
         }
-
     }
 }
