@@ -32,7 +32,11 @@
                         <td class="px-4 py-2">@task.WorkPackageId</td>
                         <td class="px-4 py-2">@task.Type</td>
                         <td class="px-4 py-2">@task.Subject</td>
-                        <td class="px-4 py-2">@task.Start?.ToString("dd MMM yyyy")</td>
+                        <td class="px-4 py-2">
+                            @(task.Start.HasValue && task.Start.Value != DateTime.MinValue
+                                                ? task.Start.Value.ToString("dd MMM yyyy")
+                                                : "Not set")
+                        </td>
                         <td class="px-4 py-2">@task.End?.ToString("dd MMM yyyy")</td>
                         <td class="px-4 py-2">@task.DurationDays?.ToString("0.##")</td>
                         <td class="px-4 py-2">@task.StatusHistory</td>

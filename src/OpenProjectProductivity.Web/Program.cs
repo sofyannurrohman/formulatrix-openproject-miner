@@ -55,7 +55,7 @@ var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]);
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme; // MVC default
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;  // API default
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;  // API default
 })
 .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
 {

@@ -15,7 +15,7 @@ namespace OpenProjectProductivity.Web.Controllers
         private readonly SignInManager<AuthUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly JwtService _jwtService;
-private readonly ILogger<AuthController> _logger;
+        private readonly ILogger<AuthController> _logger;
         public AuthController(UserManager<AuthUser> userManager,
                               SignInManager<AuthUser> signInManager,
                               RoleManager<IdentityRole> roleManager,
@@ -139,6 +139,9 @@ private readonly ILogger<AuthController> _logger;
             if (result.Succeeded)
             {
                 _logger.LogInformation("User logged in successfully: {Username}", model.UserName);
+
+                // Ensure cookie is created
+                await _signInManager.SignInAsync(user, isPersistent: model.RememberMe);
 
                 // Generate JWT token for API usage
                 var token = await _jwtService.GenerateTokenAsync(user);
