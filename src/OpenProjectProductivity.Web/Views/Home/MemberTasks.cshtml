@@ -1,14 +1,8 @@
 @model OpenProductivity.Web.DTOs.MemberTaskDetailsResponseDto
 @{
+    Layout = "_AuthLayout";
     ViewData["Title"] = "Member Tasks";
 }
-<div class="flex justify-between items-center mb-6">
-    <h1 class="text-2xl font-bold">@Model?.MemberName</h1>
-    <a href="@Url.Action("Index", "Home")" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
-        Back to Dashboard
-    </a>
-</div>
-
 @if (Model?.Tasks != null && Model.Tasks.Any())
 {
     <div class="overflow-x-auto">
@@ -50,26 +44,4 @@
 else
 {
     <p class="text-gray-500 mt-4">No tasks found for this member.</p>
-}
-
-@section Scripts {
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
-    <script>
-        $(document).ready(function () {
-            $('#tasksTable').DataTable({
-                paging: true,
-                searching: true,
-                ordering: true,
-                info: true,
-                pageLength: 10,
-                responsive: true,
-                columnDefs: [
-                    { orderable: false, targets: [6, 7] } // StatusHistory and Notes columns not sortable
-                ]
-            });
-        });
-    </script>
 }

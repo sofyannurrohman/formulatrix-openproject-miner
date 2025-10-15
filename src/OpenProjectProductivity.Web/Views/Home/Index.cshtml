@@ -8,77 +8,66 @@
     var goalPeriods = ViewBag.GoalPeriods as List<string>;
 }
 
+<!-- Dashboard filters -->
 <form method="get" class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-    <!-- Project Dropdown -->
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
-        <select name="projectId" class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
-    <option value="">Select Project</option>
-    @foreach (var project in projects)
-    {
-        if (selectedProjectId.HasValue && selectedProjectId.Value == project.Id)
-        {
-            <option value="@project.Id" selected>@project.Name</option>
-        }
-        else
-        {
-            <option value="@project.Id">@project.Name</option>
-        }
-    }
-</select>
+        <select name="projectId" class="block w-full border rounded-md p-2">
+            <option value="">Select Project</option>
+            @foreach (var project in projects)
+            {
+                if (selectedProjectId == project.Id)
+                {
+                    <option value="@project.Id" selected>@project.Name</option>
+                }
+                else
+                {
+                    <option value="@project.Id">@project.Name</option>
+                }
+            }
+        </select>
     </div>
-
-    <!-- Goal Period Dropdown -->
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Goal Period</label>
-        <select name="goalPeriod" class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500">
-    <option value="">Select Goal Period</option>
-    @foreach (var gp in goalPeriods)
-    {
-        if (selectedGoalPeriod == gp)
-        {
-            <option value="@gp" selected>@gp</option>
-        }
-        else
-        {
-            <option value="@gp">@gp</option>
-        }
-    }
-</select>
+        <select name="goalPeriod" class="block w-full border rounded-md p-2">
+            <option value="">Select Goal Period</option>
+            @foreach (var gp in goalPeriods)
+            {
+                if (selectedGoalPeriod == gp)
+                {
+                    <option value="@gp" selected>@gp</option>
+                }
+                else
+                {
+                    <option value="@gp">@gp</option>
+                }
+            }
+        </select>
     </div>
-
-    <!-- Submit Button -->
     <div class="flex items-end">
-        <button type="submit" class="w-full bg-blue-600 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-700">
-            Find 🔍
-        </button>
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Find 🔍</button>
     </div>
 </form>
 
+<!-- Dashboard table -->
 @if (Model != null && Model.Any())
 {
-    <div class="mb-6">
-        <canvas id="productivityChart" style="height: 300px;"></canvas>
-    </div>
-
     <div class="overflow-x-auto">
-        <table id="memberTable" class="min-w-full bg-white border border-gray-200 rounded-md shadow-md">
-            <thead class="bg-blue-500">
+        <table id="memberTable" class="min-w-full bg-white border rounded-md shadow-md">
+            <thead class="bg-blue-500 text-white">
                 <tr>
-                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Member Name</th>
-                    <th class="px-4 py-2 text-center text-sm font-medium text-white">User Stories</th>
-                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Issues</th>
-                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Completed Tasks</th>
-                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Avg Duration (days)</th>
-                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Rework Count</th>
-                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Productivity Score</th>
-                    <th class="px-4 py-2 text-center text-sm font-medium text-white">Action</th>
+                    <th class="px-4 py-2 text-center">Member Name</th>
+                    <th class="px-4 py-2 text-center">User Stories</th>
+                    <th class="px-4 py-2 text-center">Issues</th>
+                    <th class="px-4 py-2 text-center">Completed Tasks</th>
+                    <th class="px-4 py-2 text-center">Avg Duration</th>
+                    <th class="px-4 py-2 text-center">Rework Count</th>
+                    <th class="px-4 py-2 text-center">Action</th>
                 </tr>
             </thead>
-            <tbody class="divide-y divide-gray-200">
+            <tbody>
                 @foreach (var member in Model)
                 {
-                    var memberUrl = Url.Action("MemberTasks", "Home", new { projectId = selectedProjectId, memberId = member.MemberId, goalPeriod = selectedGoalPeriod });
                     <tr>
                         <td class="px-4 py-2">@member.MemberName</td>
                         <td class="px-4 py-2 text-center">@member.TotalUserStories</td>
@@ -86,17 +75,14 @@
                         <td class="px-4 py-2 text-center">@member.CompletedTasks</td>
                         <td class="px-4 py-2 text-center">@Math.Round(member.AvgDurationDays, 2)</td>
                         <td class="px-4 py-2 text-center">@member.ReworkCount</td>
-                        <td class="px-4 py-2">
-                            <div class="w-full bg-gray-200 rounded-full h-4 relative">
-                                <div class="bg-green-500 h-4 rounded-full" style="width:@member.ProductivityScore%"></div>
-                                <span class="absolute right-1 top-0 text-xs font-semibold text-white">@Math.Round(member.ProductivityScore, 1)</span>
-                            </div>
-                        </td>
                         <td class="px-4 py-2 text-center">
-                            <a class="inline-block bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600"
-                               href="@memberUrl">
-                                👁️ View Task
-                            </a>
+                           <button class="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 view-task-btn"
+        data-member-id="@member.MemberId"
+        data-member-name="@member.MemberName"
+        data-project-id="@selectedProjectId"
+        data-goal-period="@selectedGoalPeriod">
+    👁️ View Task
+</button>
                         </td>
                     </tr>
                 }
@@ -104,14 +90,31 @@
         </table>
     </div>
 }
-else if (selectedProjectId != null && selectedGoalPeriod != null)
-{
-    <p class="text-gray-500 mt-4">No data available for selected project and goal period.</p>
-}
+<!-- Tailwind Modal -->
+<div id="taskDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-lg">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center border-b p-4">
+            <h2 class="text-2xl font-bold text-center md:text-left w-full md:w-auto mb-2 md:mb-0" id="modalTitle">
+                Member Tasks
+            </h2>
+            <div class="flex space-x-2">
+               
+                <button id="closeModal" class="text-gray-600 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div id="modalContent" class="p-4">
+            <p class="text-center text-gray-500">Loading...</p>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
         $(document).ready(function () {
+            // Initialize main member table
             $('#memberTable').DataTable({
                 paging: true,
                 searching: true,
@@ -119,36 +122,49 @@ else if (selectedProjectId != null && selectedGoalPeriod != null)
                 info: true,
                 pageLength: 10,
                 responsive: true,
-                columnDefs: [{ orderable: false, targets: 7 }]
+                columnDefs: [{ orderable: false, targets: 6 }] // Action column
             });
 
-            const memberNames = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(m => m.MemberName)));
-            const productivityScores = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(m => Math.Round(m.ProductivityScore, 1))));
-            const completedTasks = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Select(m => m.CompletedTasks)));
+            // Handle "View Task" button click
+            $('.view-task-btn').click(function () {
+                var memberId = $(this).data('member-id');
+                var memberName = $(this).data('member-name'); // make sure this exists on button
+                var projectId = $(this).data('project-id');
+                var goalPeriod = $(this).data('goal-period');
 
-            const ctx = document.getElementById('productivityChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: memberNames,
-                    datasets: [
-                        {
-                            label: 'Productivity Score (%)',
-                            data: productivityScores,
-                            backgroundColor: 'rgba(34, 197, 94, 0.7)',
-                            borderColor: 'rgba(34, 197, 94, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Completed Tasks',
-                            data: completedTasks,
-                            backgroundColor: 'rgba(59, 130, 246, 0.7)',
-                            borderColor: 'rgba(59, 130, 246, 1)',
-                            borderWidth: 1
-                        }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } }, scales: { y: { beginAtZero: true } } }
+                // Update modal title with member name
+                $('#modalTitle').text(memberName + "'s Tasks");
+
+                $('#modalContent').html('<p class="text-center text-gray-500">Loading...</p>');
+                $('#taskDetailModal').removeClass('hidden');
+
+                $.get('@Url.Action("MemberTasks", "Home")', { projectId, memberId, goalPeriod }, function (data) {
+                    $('#modalContent').html(data);
+
+                    // Destroy existing DataTable if already initialized
+                    if ($.fn.DataTable.isDataTable('#tasksTable')) {
+                        $('#tasksTable').DataTable().destroy();
+                    }
+
+                    // Initialize DataTable for tasks inside modal
+                    $('#tasksTable').DataTable({
+                        paging: true,
+                        searching: true,
+                        ordering: true,
+                        info: true,
+                        pageLength: 10,
+                        responsive: true,
+                        columnDefs: [
+                            { orderable: false, targets: [6, 7] } // StatusHistory & Notes
+                        ]
+                    });
+                });
+            });
+
+            // Close modal
+            $('#closeModal').click(function () {
+                $('#taskDetailModal').addClass('hidden');
+                $('#modalContent').html('<p class="text-center text-gray-500">Loading...</p>');
             });
         });
     </script>
