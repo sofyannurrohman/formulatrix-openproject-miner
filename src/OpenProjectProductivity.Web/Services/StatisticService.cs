@@ -171,13 +171,43 @@ namespace OpenProductivity.Web.Services
 
         private bool DetectReworkLoop(IEnumerable<Activity> activities)
         {
-            return activities.Count(a => InProgressStatuses.Contains(a.ToStatus ?? "", StringComparer.OrdinalIgnoreCase)) > 1;
+            return CountReworkLoops(activities.ToList()) > 0;
         }
-
         private int CountReworkLoops(List<Activity> activities)
         {
-            return activities.Count(a => InProgressStatuses.Contains(a.ToStatus ?? "", StringComparer.OrdinalIgnoreCase)) - 1;
+            int reworkCount = 0;
+            string? prevStatus = null;
+            bool seenInProgress = false;
+
+            foreach (var a in activities.OrderBy(x => x.Timestamp))
+            {
+                var status = a.ToStatus ?? "";
+
+                if (!string.IsNullOrEmpty(prevStatus))
+                {
+                    // backward transitions
+                    if ((string.Equals(prevStatus, "Developed", StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(prevStatus, "Solved", StringComparison.OrdinalIgnoreCase) ||
+                         string.Equals(prevStatus, "Done", StringComparison.OrdinalIgnoreCase)) &&
+                        string.Equals(status, "In Progress", StringComparison.OrdinalIgnoreCase))
+                    {
+                        reworkCount++;
+                    }
+                }
+
+                // multiple In Progress loops
+                if (string.Equals(status, "In Progress", StringComparison.OrdinalIgnoreCase))
+                {
+                    if (seenInProgress) reworkCount++;
+                    seenInProgress = true;
+                }
+
+                prevStatus = status;
+            }
+
+            return reworkCount;
         }
+
         public async Task<List<string>> GetAvailableGoalPeriodsAsync(int projectId, CancellationToken cancellationToken = default)
         {
             // Assume you have a DbContext _context with WorkPackages table
