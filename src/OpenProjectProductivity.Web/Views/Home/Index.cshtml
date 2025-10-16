@@ -8,6 +8,7 @@
     var goalPeriods = ViewBag.GoalPeriods as List<string>;
 }
 
+<<<<<<< HEAD
 <form method="get" class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
     <!-- Project Dropdown -->
     <div>
@@ -26,8 +27,50 @@
         }
     }
 </select>
+=======
+<!-- Dashboard filters -->
+<form method="get" class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Project</label>
+        <select name="projectId" class="block w-full border rounded-md p-2">
+            <option value="">Select Project</option>
+            @foreach (var project in projects)
+            {
+                if (selectedProjectId == project.Id)
+                {
+                    <option value="@project.Id" selected>@project.Name</option>
+                }
+                else
+                {
+                    <option value="@project.Id">@project.Name</option>
+                }
+            }
+        </select>
     </div>
+    <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Goal Period</label>
+        <select name="goalPeriod" class="block w-full border rounded-md p-2">
+            <option value="">Select Goal Period</option>
+            @foreach (var gp in goalPeriods)
+            {
+                if (selectedGoalPeriod == gp)
+                {
+                    <option value="@gp" selected>@gp</option>
+                }
+                else
+                {
+                    <option value="@gp">@gp</option>
+                }
+            }
+        </select>
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
+    </div>
+    <div class="flex items-end">
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-md hover:bg-blue-700">Find 🔍</button>
+    </div>
+</form>
 
+<<<<<<< HEAD
     <!-- Goal Period Dropdown -->
     <div>
         <label class="block text-sm font-medium text-gray-700 mb-1">Goal Period</label>
@@ -79,6 +122,27 @@
                 @foreach (var member in Model)
                 {
                     var memberUrl = Url.Action("MemberTasks", "Home", new { projectId = selectedProjectId, memberId = member.MemberId, goalPeriod = selectedGoalPeriod });
+=======
+<!-- Dashboard table -->
+@if (Model != null && Model.Any())
+{
+    <div class="overflow-x-auto">
+        <table id="memberTable" class="min-w-full bg-white border rounded-md shadow-md">
+            <thead class="bg-blue-500 text-white">
+                <tr>
+                    <th class="px-4 py-2 text-center">Member Name</th>
+                    <th class="px-4 py-2 text-center">User Stories</th>
+                    <th class="px-4 py-2 text-center">Issues</th>
+                    <th class="px-4 py-2 text-center">Completed Tasks</th>
+                    <th class="px-4 py-2 text-center">Avg Duration</th>
+                    <th class="px-4 py-2 text-center">Rework Count</th>
+                    <th class="px-4 py-2 text-center">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var member in Model)
+                {
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
                     <tr>
                         <td class="px-4 py-2">@member.MemberName</td>
                         <td class="px-4 py-2 text-center">@member.TotalUserStories</td>
@@ -86,6 +150,7 @@
                         <td class="px-4 py-2 text-center">@member.CompletedTasks</td>
                         <td class="px-4 py-2 text-center">@Math.Round(member.AvgDurationDays, 2)</td>
                         <td class="px-4 py-2 text-center">@member.ReworkCount</td>
+<<<<<<< HEAD
                         <td class="px-4 py-2">
                             <div class="w-full bg-gray-200 rounded-full h-4 relative">
                                 <div class="bg-green-500 h-4 rounded-full" style="width:@member.ProductivityScore%"></div>
@@ -97,6 +162,16 @@
                                href="@memberUrl">
                                 👁️ View Task
                             </a>
+=======
+                        <td class="px-4 py-2 text-center">
+                           <button class="bg-blue-500 text-white px-3 py-1 rounded-md hover:bg-blue-600 view-task-btn"
+        data-member-id="@member.MemberId"
+        data-member-name="@member.MemberName"
+        data-project-id="@selectedProjectId"
+        data-goal-period="@selectedGoalPeriod">
+    👁️ View Task
+</button>
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
                         </td>
                     </tr>
                 }
@@ -104,14 +179,41 @@
         </table>
     </div>
 }
+<<<<<<< HEAD
 else if (selectedProjectId != null && selectedGoalPeriod != null)
 {
     <p class="text-gray-500 mt-4">No data available for selected project and goal period.</p>
 }
+=======
+<!-- Tailwind Modal -->
+<div id="taskDetailModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-white rounded-lg w-full max-w-6xl max-h-[90vh] overflow-y-auto shadow-lg">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center border-b p-4">
+            <h2 class="text-2xl font-bold text-center md:text-left w-full md:w-auto mb-2 md:mb-0" id="modalTitle">
+                Member Tasks
+            </h2>
+            <div class="flex space-x-2">
+               
+                <button id="closeModal" class="text-gray-600 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div id="modalContent" class="p-4">
+            <p class="text-center text-gray-500">Loading...</p>
+        </div>
+    </div>
+</div>
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
 
 @section Scripts {
     <script>
         $(document).ready(function () {
+<<<<<<< HEAD
+=======
+            // Initialize main member table
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
             $('#memberTable').DataTable({
                 paging: true,
                 searching: true,
@@ -119,6 +221,7 @@ else if (selectedProjectId != null && selectedGoalPeriod != null)
                 info: true,
                 pageLength: 10,
                 responsive: true,
+<<<<<<< HEAD
                 columnDefs: [{ orderable: false, targets: 7 }]
             });
 
@@ -149,6 +252,51 @@ else if (selectedProjectId != null && selectedGoalPeriod != null)
                     ]
                 },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }, tooltip: { mode: 'index', intersect: false } }, scales: { y: { beginAtZero: true } } }
+=======
+                columnDefs: [{ orderable: false, targets: 6 }] // Action column
+            });
+
+            // Handle "View Task" button click
+            $('.view-task-btn').click(function () {
+                var memberId = $(this).data('member-id');
+                var memberName = $(this).data('member-name'); // make sure this exists on button
+                var projectId = $(this).data('project-id');
+                var goalPeriod = $(this).data('goal-period');
+
+                // Update modal title with member name
+                $('#modalTitle').text(memberName + "'s Tasks");
+
+                $('#modalContent').html('<p class="text-center text-gray-500">Loading...</p>');
+                $('#taskDetailModal').removeClass('hidden');
+
+                $.get('@Url.Action("MemberTasks", "Home")', { projectId, memberId, goalPeriod }, function (data) {
+                    $('#modalContent').html(data);
+
+                    // Destroy existing DataTable if already initialized
+                    if ($.fn.DataTable.isDataTable('#tasksTable')) {
+                        $('#tasksTable').DataTable().destroy();
+                    }
+
+                    // Initialize DataTable for tasks inside modal
+                    $('#tasksTable').DataTable({
+                        paging: true,
+                        searching: true,
+                        ordering: true,
+                        info: true,
+                        pageLength: 10,
+                        responsive: true,
+                        columnDefs: [
+                            { orderable: false, targets: [6, 7] } // StatusHistory & Notes
+                        ]
+                    });
+                });
+            });
+
+            // Close modal
+            $('#closeModal').click(function () {
+                $('#taskDetailModal').addClass('hidden');
+                $('#modalContent').html('<p class="text-center text-gray-500">Loading...</p>');
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
             });
         });
     </script>

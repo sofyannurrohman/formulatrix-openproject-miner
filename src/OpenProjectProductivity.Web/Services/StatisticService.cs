@@ -86,10 +86,17 @@ namespace OpenProductivity.Web.Services
         }
 
         public async Task<MemberTaskDetailsResponseDto> GetMemberTaskDetailsAsync(
+<<<<<<< HEAD
             int projectId,
             int memberId,
             string goalPeriod,
             CancellationToken cancellationToken = default)
+=======
+    int projectId,
+    int memberId,
+    string goalPeriod,
+    CancellationToken cancellationToken = default)
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
         {
             var workPackages = await _context.WorkPackages
                 .Where(wp => wp.ProjectId == projectId && wp.AssigneeId == memberId && wp.GoalPeriod == goalPeriod)
@@ -105,19 +112,38 @@ namespace OpenProductivity.Web.Services
                 var activities = wp.Activities.OrderBy(a => a.Timestamp).ToList();
                 var statusHistory = string.Join(" → ", activities.Select(a => a.ToStatus ?? "-"));
 
+<<<<<<< HEAD
+=======
+                // First In Progress timestamp (if exists)
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
                 var inProgressTimestamp = activities
                     .Where(a => InProgressStatuses.Contains(a.ToStatus ?? "", StringComparer.OrdinalIgnoreCase))
                     .Select(a => a.Timestamp)
                     .FirstOrDefault();
 
+<<<<<<< HEAD
+=======
+                // Done timestamp
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
                 var doneTimestamp = activities
                     .Where(a => DoneStatuses.Contains(a.ToStatus ?? "", StringComparer.OrdinalIgnoreCase))
                     .Select(a => a.Timestamp)
                     .LastOrDefault();
 
+<<<<<<< HEAD
                 double? duration = null;
                 if (inProgressTimestamp != default && doneTimestamp != default)
                     duration = (doneTimestamp - inProgressTimestamp).TotalDays;
+=======
+                // Start timestamp: fallback to first activity if no In Progress found
+                var startTimestamp = inProgressTimestamp != default
+                    ? inProgressTimestamp
+                    : activities.Select(a => a.Timestamp).FirstOrDefault();
+
+                double? duration = null;
+                if (startTimestamp != default && doneTimestamp != default)
+                    duration = (doneTimestamp - startTimestamp).TotalDays;
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
 
                 bool reworkDetected = DetectReworkLoop(activities);
 
@@ -126,7 +152,11 @@ namespace OpenProductivity.Web.Services
                     WorkPackageId = wp.Id,
                     Type = wp.Type,
                     Subject = wp.Subject,
+<<<<<<< HEAD
                     Start = inProgressTimestamp,
+=======
+                    Start = startTimestamp,
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
                     End = doneTimestamp,
                     DurationDays = duration.HasValue ? Math.Round(duration.Value, 2) : (double?)null,
                     StatusHistory = statusHistory,
@@ -142,6 +172,10 @@ namespace OpenProductivity.Web.Services
             };
         }
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
         private double? CalculateInProgressToDoneDuration(WorkPackage wp, string aggregationMode = "first")
         {
             var activities = wp.Activities.OrderBy(a => a.Timestamp).ToList();

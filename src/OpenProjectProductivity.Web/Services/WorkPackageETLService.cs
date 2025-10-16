@@ -84,19 +84,29 @@ public class WorkPackageETLService
         }
         if (missingUsers.Any()) await _context.SaveChangesAsync(cancellationToken);
 
-        // --- Upsert WorkPackages ---
+        // --- Deduplicate WorkPackages by Id (keep last occurrence) ---
+        var dedupedBuffer = workPackagesBuffer
+            .GroupBy(wp => wp.Id)
+            .Select(g => g.Last())
+            .ToList();
+
+        // --- Upsert WorkPackages in batches ---
         var idToWpMap = new Dictionary<int, WorkPackage>();
-        for (int i = 0; i < workPackagesBuffer.Count; i += _batchSize)
+        for (int i = 0; i < dedupedBuffer.Count; i += _batchSize)
         {
-            var batch = workPackagesBuffer.Skip(i).Take(_batchSize).ToList();
+            var batch = dedupedBuffer.Skip(i).Take(_batchSize).ToList();
             var ids = batch.Select(b => b.Id).ToList();
 
             var existingBatch = await _context.WorkPackages
                 .Where(wp => ids.Contains(wp.Id))
                 .ToDictionaryAsync(wp => wp.Id, cancellationToken);
 
+            var batchIds = new HashSet<int>();
+
             foreach (var (id, wp) in batch)
             {
+                if (!batchIds.Add(id)) continue; // skip duplicates in batch
+
                 if (existingBatch.TryGetValue(id, out var existingWp))
                 {
                     UpdateWorkPackage(existingWp, wp);
@@ -197,8 +207,6 @@ public class WorkPackageETLService
             foreach (var detail in details.EnumerateArray())
             {
                 string raw = detail.TryGetProperty("raw", out var rawProp) ? rawProp.GetString() ?? "" : "";
-
-                // Only store status changes
                 if (!raw.StartsWith("Status changed")) continue;
 
                 var activity = new Activity

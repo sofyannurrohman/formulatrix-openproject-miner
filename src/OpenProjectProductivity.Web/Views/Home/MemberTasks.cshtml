@@ -1,5 +1,6 @@
 @model OpenProductivity.Web.DTOs.MemberTaskDetailsResponseDto
 @{
+<<<<<<< HEAD
     ViewData["Title"] = "Member Tasks";
 }
 <div class="flex justify-between items-center mb-6">
@@ -9,6 +10,11 @@
     </a>
 </div>
 
+=======
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Member Tasks";
+}
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
 @if (Model?.Tasks != null && Model.Tasks.Any())
 {
     <div class="overflow-x-auto">
@@ -51,6 +57,7 @@ else
 {
     <p class="text-gray-500 mt-4">No tasks found for this member.</p>
 }
+<<<<<<< HEAD
 
 @section Scripts {
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
@@ -73,3 +80,5 @@ else
         });
     </script>
 }
+=======
+>>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb

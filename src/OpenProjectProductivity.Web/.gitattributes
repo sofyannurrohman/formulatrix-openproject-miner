@@ -1,0 +1,2 @@
+src/OpenProjectProductivity.Web/done_work_packages.json filter=lfs diff=lfs merge=lfs -text
+done_work_packages.json filter=lfs diff=lfs merge=lfs -text
