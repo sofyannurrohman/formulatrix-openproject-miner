@@ -2,58 +2,81 @@
 @{
     Layout = "_AuthLayout";
     ViewData["Title"] = "Register";
+    ViewData["LayoutType"] = "auth";
 }
 
-<div class="min-h-screen flex items-center justify-center bg-gray-100">
-    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-6 text-center">Register</h1>
+<div class="card shadow-xl bg-white">
+    <div class="card-body">
+        <h1 class="mb-2 font-semibold text-gray-800 text-lg sm:text-title-lg">
+            Create an Account
+        </h1>
+        <p class="text-sm text-gray-500">
+            Fill in the details to register a new account
+        </p>
 
-        <form asp-controller="Auth" asp-action="Register" method="post" class="space-y-4">
+        @* Validation summary (server side errors) *@
+        <div asp-validation-summary="ModelOnly" class="alert alert-error mb-4 hidden" role="alert"></div>
+
+        <form asp-action="Register" asp-controller="Auth" method="post" class="space-y-4" novalidate>
             @Html.AntiForgeryToken()
 
-            <div>
-                <label asp-for="UserName" class="block text-sm font-medium text-gray-700">Username</label>
-                <input asp-for="UserName" class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" />
-                <span asp-validation-for="UserName" class="text-red-500 text-sm"></span>
+            <!-- Username -->
+            <div class="form-control">
+                <label asp-for="UserName" class="label">
+                    <span class="label-text text-md text-black">Username</span>
+                </label>
+                <input asp-for="UserName"
+                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10"
+                    placeholder="Enter your username" />
+                <span asp-validation-for="UserName" class="text-error text-sm mt-1"></span>
             </div>
 
-            <div>
-                <label asp-for="Email" class="block text-sm font-medium text-gray-700">Email</label>
-                <input asp-for="Email" type="email" class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" />
-                <span asp-validation-for="Email" class="text-red-500 text-sm"></span>
+            <!-- Email -->
+            <div class="form-control">
+                <label asp-for="Email" class="label">
+                    <span class="label-text text-md text-black">Email</span>
+                </label>
+                <input asp-for="Email" type="email"
+                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10"
+                    placeholder="Enter your email" />
+                <span asp-validation-for="Email" class="text-error text-sm mt-1"></span>
             </div>
 
-            <div>
-                <label asp-for="Password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input asp-for="Password" type="password" class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" />
-                <span asp-validation-for="Password" class="text-red-500 text-sm"></span>
+            <!-- Password -->
+            <div class="form-control">
+                <label asp-for="Password" class="label">
+                    <span class="label-text text-md text-black">Password</span>
+                </label>
+                <input asp-for="Password" type="password"
+                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10"
+                    placeholder="Enter your password" />
+                <span asp-validation-for="Password" class="text-error text-sm mt-1"></span>
             </div>
 
-            <div>
-                <label asp-for="ConfirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                <input asp-for="ConfirmPassword" type="password" class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" />
-                <span asp-validation-for="ConfirmPassword" class="text-red-500 text-sm"></span>
+            <!-- Confirm Password -->
+            <div class="form-control">
+                <label asp-for="ConfirmPassword" class="label">
+                    <span class="label-text text-md text-black">Confirm Password</span>
+                </label>
+                <input asp-for="ConfirmPassword" type="password"
+                    class="h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10"
+                    placeholder="Confirm your password" />
+                <span asp-validation-for="ConfirmPassword" class="text-error text-sm mt-1"></span>
             </div>
 
-            <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-                Register
-            </button>
 
-            <p class="text-sm text-gray-600 mt-2 text-center">
-                Already have an account? <a asp-controller="Auth" asp-action="Login" class="text-blue-500 hover:underline">Login</a>
+            <div class="form-control">
+                <button type="submit"
+                    class="btn bg-black text-white w-full hover:bg-orange-500 hover:text-black active:bg-gray-400 active:text-black">
+                    Sign up
+                </button>
+            </div>
+
+            <p class="text-sm text-center">
+                Already have an account?
+                <a asp-action="Login" class="link link-neutral hover:text-orange-500">Login</a>
             </p>
         </form>
-
-        <!-- Display server-side errors from ModelState -->
-        @if (!ViewData.ModelState.IsValid)
-        {
-            <div class="mt-4 text-red-500 text-sm">
-                @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
-                {
-                    <div>@error.ErrorMessage</div>
-                }
-            </div>
-        }
     </div>
 </div>
 

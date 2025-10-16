@@ -2,42 +2,66 @@
 @{
     Layout = "_AuthLayout";
     ViewData["Title"] = "Login";
+    ViewData["LayoutType"] = "auth";
 }
 
-<div class="min-h-screen flex items-center justify-center bg-gray-100">
-    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-6 text-center">Login</h1>
+<div class="card shadow-xl bg-white">
+    <div class="card-body">
+        <h1 class="mb-2 font-semibold text-gray-800 text-lg sm:text-title-lg">
+            Sign In
+        </h1>
+        <p class="text-sm text-gray-500 ">
+            Enter your email and password to sign in!
+        </p>
+        @* Validation summary (server side errors) *@
+        <div asp-validation-summary="ModelOnly" class="alert alert-error mb-4 hidden" role="alert"></div>
 
-        <form  asp-controller="Auth" asp-action="Login" method="post" class="space-y-4">
-        @Html.AntiForgeryToken()
-            <div>
-                <label asp-for="UserName" class="block text-sm font-medium text-gray-700">Username</label>
-                <input asp-for="UserName" class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" />
-                <span asp-validation-for="UserName" class="text-red-500 text-sm"></span>
+        <form asp-action="Login" asp-controller="Auth" method="post" class="space-y-4" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div class="form-control">
+                <label asp-for="UserName" class="label">
+                    <span class="label-text text-md text-black">Username</span>
+                </label>
+                <input asp-for="UserName"
+                    class=" h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 "
+                    placeholder="Enter your username" />
+                <span asp-validation-for="UserName" class="text-error text-sm mt-1"></span>
             </div>
 
-            <div>
-                <label asp-for="Password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input asp-for="Password" type="password" class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" />
-                <span asp-validation-for="Password" class="text-red-500 text-sm"></span>
+            <div class="form-control">
+                <label asp-for="Password" class="label">
+                    <span class="label-text text-md text-black">Password</span>
+                </label>
+                <input asp-for="Password" type="password"
+                    class=" h-11 w-full rounded-lg border border-gray-300 bg-transparent py-2.5 pl-4 pr-11 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 "
+                    placeholder="Enter your password" />
+                <span asp-validation-for="Password" class="text-error text-sm mt-1"></span>
             </div>
 
-            <div class="flex items-center">
-                <input asp-for="RememberMe" class="mr-2" />
-                <label asp-for="RememberMe" class="text-sm text-gray-700">Remember me</label>
+            <div class="form-control">
+                <label class="flex items-center gap-2">
+                    <input asp-for="RememberMe" class="checkbox checkbox-neutral" />
+                    <span class="label-text">Remember me</span>
+                </label>
             </div>
 
-            <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
-                Login
-            </button>
+            <div class="form-control">
+                <button type="submit"
+                    class="btn bg-black text-white w-full hover:bg-orange-500 hover:text-black active:bg-gray-400 active:text-black">
+                    Sign in
+                </button>
+            </div>
 
-            <p class="text-sm text-gray-600 mt-2 text-center">
-                Don't have an account? <a asp-action="Register" class="text-blue-500 hover:underline">Register</a>
+            <p class="text-sm text-center">
+                Don’t have an account?
+                <a asp-action="Register" class="link link-neutral hover:text-orange-500">Register</a>
             </p>
         </form>
     </div>
 </div>
 
 @section Scripts {
+    @* Client-side validation scripts are already included in layout; keep this for partial fallback *@
     <partial name="_ValidationScriptsPartial" />
 }

@@ -5,12 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - OpenProject</title>
 
+    <!-- Tailwind + DaisyUI (CDN) -->
+    <script>
+        // Optional: set Tailwind config before loading the lib if you want custom colors
+        tailwind.config = { theme: { extend: {} } }
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
-    
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.20/dist/full.css" rel="stylesheet" />
+
+    <!-- jQuery (required by unobtrusive validation) -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js" crossorigin="anonymous"></script>
+
+    <!-- jQuery Validate + Unobtrusive (for client validation) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js" integrity="sha512-...==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js" integrity="sha512-...==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    <style>
+        /* small helper to center auth pages nicely */
+        .auth-bg { background: linear-gradient(180deg, #f5f7fb 0%, #eef2f7 100%); }
+    </style>
 </head>
-<body class="bg-gray-100">
+<body class="auth-bg min-h-screen font-sans">
+
     <div class="min-h-screen flex items-center justify-center">
-        @RenderBody()
+        <main class="w-full max-w-lg">
+            @RenderBody()
+        </main>
     </div>
 
     @RenderSection("Scripts", required: false)

@@ -5,69 +5,89 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - OpenProject Data Mining</title>
+
+    <!-- Tailwind + DaisyUI -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.20/dist/full.css" rel="stylesheet" type="text/css" />
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.20/dist/full.css" rel="stylesheet" />
+    
+    <!-- jQuery + DataTables (optional, for dashboard pages) -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
 </head>
 
-<body class="bg-gray-100 text-gray-800 font-sans flex">
+<body class="bg-gray-100 text-gray-800 font-sans flex min-h-screen" data-theme="light">
 
     <!-- Sidebar -->
     <aside id="sidebar"
-        class="fixed inset-y-0 left-0 w-64 bg-white shadow-md transform transition-transform duration-300 z-50">
-        <div class="p-6 flex justify-between items-center">
-            <a href="#" class="text-xl font-bold text-blue-600">📈 OpenProject</a>
-
+        class="fixed inset-y-0 left-0 w-64 bg-neutral shadow-md transform -translate-x-64 transition-transform duration-300 z-50">
+        <div class="py-6 px-5 flex justify-between items-center">
+            <img src="~/Assets/logo.png" alt="Logo" class="w-6 h-6 mr-2" />
+            <a href="#" class="text-xl font-bold text-white">OpenProjectMining</a>
         </div>
-        <nav class="mt-6" >
-            <ul>
-                <li class="p-4">
+        <nav class="mt-5">
+            <ul class="space-y-4">
+                <li>
                     <a href="/Dashboard/Index"
-                        class="block bg-blue-500 py-2 px-6 text-white hover:bg-blue-100 rounded transition">
-                        📄 Dashboard
+                        class="flex items-center gap-3 p-3 rounded hover:bg-orange-500 hover:text-black text-white">
+                        <img src="~/Assets/dashboard.png" alt="Dashboard" class="w-6 h-6" />
+                        <span class="font-semibold">Dashboard</span>
                     </a>
                 </li>
-                <li class=" p-4">
+                <li>
                     <a href="/Home/Index"
-                        class="block bg-blue-500 py-2 px-6 text-white hover:bg-blue-100 rounded transition">
-                        🕗 Project Productivity
+                        class="flex items-center gap-3 p-3 rounded hover:bg-orange-500 hover:text-black text-white">
+                        <img src="~/Assets/metric.png" alt="Project Tracking" class="w-6 h-6" />
+                        <span class="font-semibold">Project Tracking</span>
                     </a>
                 </li>
             </ul>
         </nav>
     </aside>
 
-    <!-- Overlay -->
-    <div id="overlay" class="fixed inset-0 hidden z-40" onclick="toggleSidebar()"></div>
-
     <!-- Main content -->
-    <div id="main-content" class="flex-1 flex flex-col min-h-screen transition-all duration-300 ml-64">
-        <!-- Header -->
-        <header class="bg-white shadow-md flex items-center justify-between px-6 py-4"  style="background-color:#1A1C20;">
-            <button onclick="toggleSidebar()" class="text-white text-2xl">
-                ☰
-            </button>
-            <span class="text-xl font-bold text-blue-600">@ViewData["Title"]</span>
-            <form method="post" asp-controller="Auth" asp-action="Logout">
-                @Html.AntiForgeryToken()
-                <button type="submit"
-                    class="flex items-center space-x-1 text-gray-700 hover:text-red-600 text-lg font-medium transition bg-transparent border-none p-0">
-                    <span>Sign Out</span>
-                    <span class="sr-only">Sign Out</span>
+    <div id="main-content" class="flex-1 flex flex-col transition-all duration-300 ml-0">
+
+        <!-- Header Navbar -->
+        <header class="navbar bg-base-100 shadow-sm px-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <!-- Hamburger toggle -->
+                <button id="hamburger" class="btn btn-ghost text-gray-600 hover:bg-orange-500 hover:text-white text-2xl">
+                    ☰
                 </button>
-            </form>
+            </div>
+            <div class="flex gap-2 items-center">
+                <input type="text" placeholder="Search" class="input input-bordered w-24 md:w-auto" />
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                        <div class="w-10 rounded-full">
+                            <img alt="User Avatar"
+                                src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.webp" />
+                        </div>
+                    </div>
+                    <ul tabindex="-1"
+                        class="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 mt-3 w-52 p-2 shadow">
+                        <li><a>Profile</a></li>
+                        <li><a>Settings</a></li>
+                        <li>
+                            <form method="post" asp-controller="Auth" asp-action="Logout">
+                                @Html.AntiForgeryToken()
+                                <button type="submit"
+                                    class="w-full text-left text-gray-700 hover:text-red-600">Sign Out</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
         </header>
 
         <!-- Body -->
-        <main class="container mx-auto px-6 py-8 flex-1" >
+        <main class="flex-1 px-6 py-8 w-full max-w-none overflow-x-auto">
             @RenderBody()
         </main>
 
         <!-- Footer -->
-        <footer class="bg-white shadow-inner border-t mt-12">
+        <footer class="bg-white shadow-inner border-t mt-auto">
             <div class="container mx-auto px-6 py-4 text-center text-gray-500 text-sm">
                 &copy; 2025 OpenProject Data Mining
             </div>
@@ -76,40 +96,20 @@
 
     <!-- Scripts -->
     <script>
-        let sidebarOpen = true;
+        const sidebar = document.getElementById('sidebar');
+        const main = document.getElementById('main-content');
+        const hamburger = document.getElementById('hamburger');
 
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            const main = document.getElementById('main-content');
+        let sidebarOpen = false; // Sidebar initially hidden
 
+        hamburger.addEventListener('click', () => {
             sidebarOpen = !sidebarOpen;
-
-            if (sidebarOpen) {
-                sidebar.classList.remove('-translate-x-64');
-                main.classList.add('ml-64');
-                main.classList.remove('ml-0');
-                overlay.classList.add('hidden');
-            } else {
-                sidebar.classList.add('-translate-x-64');
-                main.classList.remove('ml-64');
-                main.classList.add('ml-0');
-                overlay.classList.remove('hidden');
-            }
-        }
-
-        // Initialize sidebar open
-        document.addEventListener('DOMContentLoaded', () => {
-            toggleSidebar(); // optional if you want it closed by default
-            toggleSidebar(); // call twice to keep it open initially
+            sidebar.classList.toggle('-translate-x-64', !sidebarOpen);
+            main.classList.toggle('ml-64', sidebarOpen);
         });
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
-    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
-
 </body>
 
 </html>
