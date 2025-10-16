@@ -57,16 +57,10 @@ namespace OpenProductivity.Web.Services
                 double avgDurationDays = durations.Any() ? durations.Average() : 0;
                 int reworkTasks = memberTasks.Count(wp => DetectReworkLoop(wp.Activities));
 
-                // Baseline duration for a normal task
                 double baselineDuration = 10.0;
+                double speedFactor = Math.Pow(baselineDuration / (avgDurationDays + 1), 0.5);
 
-                // Smooth speed factor: decreases more gently for longer tasks
-                double speedFactor = Math.Pow(baselineDuration / (avgDurationDays + 1), 0.5); // square root for smoother effect
-
-                // Compute raw productivity
                 double productivityScore = (completedTasks * 10 * speedFactor) - (reworkTasks * 5);
-
-                // Clamp to 0–100
                 productivityScore = Math.Clamp(productivityScore, 0, 100);
 
                 statistics.Add(new MemberStatisticDto
@@ -86,17 +80,10 @@ namespace OpenProductivity.Web.Services
         }
 
         public async Task<MemberTaskDetailsResponseDto> GetMemberTaskDetailsAsync(
-<<<<<<< HEAD
             int projectId,
             int memberId,
             string goalPeriod,
             CancellationToken cancellationToken = default)
-=======
-    int projectId,
-    int memberId,
-    string goalPeriod,
-    CancellationToken cancellationToken = default)
->>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
         {
             var workPackages = await _context.WorkPackages
                 .Where(wp => wp.ProjectId == projectId && wp.AssigneeId == memberId && wp.GoalPeriod == goalPeriod)
@@ -112,38 +99,24 @@ namespace OpenProductivity.Web.Services
                 var activities = wp.Activities.OrderBy(a => a.Timestamp).ToList();
                 var statusHistory = string.Join(" → ", activities.Select(a => a.ToStatus ?? "-"));
 
-<<<<<<< HEAD
-=======
-                // First In Progress timestamp (if exists)
->>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
+                // Start timestamp: first In Progress if exists, otherwise first activity
                 var inProgressTimestamp = activities
                     .Where(a => InProgressStatuses.Contains(a.ToStatus ?? "", StringComparer.OrdinalIgnoreCase))
                     .Select(a => a.Timestamp)
                     .FirstOrDefault();
 
-<<<<<<< HEAD
-=======
-                // Done timestamp
->>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
+                var startTimestamp = inProgressTimestamp != default
+                    ? inProgressTimestamp
+                    : activities.Select(a => a.Timestamp).FirstOrDefault();
+
                 var doneTimestamp = activities
                     .Where(a => DoneStatuses.Contains(a.ToStatus ?? "", StringComparer.OrdinalIgnoreCase))
                     .Select(a => a.Timestamp)
                     .LastOrDefault();
 
-<<<<<<< HEAD
-                double? duration = null;
-                if (inProgressTimestamp != default && doneTimestamp != default)
-                    duration = (doneTimestamp - inProgressTimestamp).TotalDays;
-=======
-                // Start timestamp: fallback to first activity if no In Progress found
-                var startTimestamp = inProgressTimestamp != default
-                    ? inProgressTimestamp
-                    : activities.Select(a => a.Timestamp).FirstOrDefault();
-
                 double? duration = null;
                 if (startTimestamp != default && doneTimestamp != default)
                     duration = (doneTimestamp - startTimestamp).TotalDays;
->>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
 
                 bool reworkDetected = DetectReworkLoop(activities);
 
@@ -152,11 +125,7 @@ namespace OpenProductivity.Web.Services
                     WorkPackageId = wp.Id,
                     Type = wp.Type,
                     Subject = wp.Subject,
-<<<<<<< HEAD
-                    Start = inProgressTimestamp,
-=======
                     Start = startTimestamp,
->>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
                     End = doneTimestamp,
                     DurationDays = duration.HasValue ? Math.Round(duration.Value, 2) : (double?)null,
                     StatusHistory = statusHistory,
@@ -172,15 +141,18 @@ namespace OpenProductivity.Web.Services
             };
         }
 
-<<<<<<< HEAD
-=======
-
->>>>>>> a382060bd93953fc3200fd8081d54019dbd482eb
         private double? CalculateInProgressToDoneDuration(WorkPackage wp, string aggregationMode = "first")
         {
             var activities = wp.Activities.OrderBy(a => a.Timestamp).ToList();
-            var inProgressTimestamps = activities.Where(a => InProgressStatuses.Contains(a.ToStatus ?? "", StringComparer.OrdinalIgnoreCase)).Select(a => a.Timestamp).ToList();
-            var doneTimestamps = activities.Where(a => DoneStatuses.Contains(a.ToStatus ?? "", StringComparer.OrdinalIgnoreCase)).Select(a => a.Timestamp).ToList();
+            var inProgressTimestamps = activities
+                .Where(a => InProgressStatuses.Contains(a.ToStatus ?? "", StringComparer.OrdinalIgnoreCase))
+                .Select(a => a.Timestamp)
+                .ToList();
+
+            var doneTimestamps = activities
+                .Where(a => DoneStatuses.Contains(a.ToStatus ?? "", StringComparer.OrdinalIgnoreCase))
+                .Select(a => a.Timestamp)
+                .ToList();
 
             if (!doneTimestamps.Any()) return null;
             if (!inProgressTimestamps.Any()) return (doneTimestamps.Min() - wp.CreatedAt).TotalDays;
@@ -207,6 +179,7 @@ namespace OpenProductivity.Web.Services
         {
             return CountReworkLoops(activities.ToList()) > 0;
         }
+
         private int CountReworkLoops(List<Activity> activities)
         {
             int reworkCount = 0;
@@ -219,7 +192,6 @@ namespace OpenProductivity.Web.Services
 
                 if (!string.IsNullOrEmpty(prevStatus))
                 {
-                    // backward transitions
                     if ((string.Equals(prevStatus, "Developed", StringComparison.OrdinalIgnoreCase) ||
                          string.Equals(prevStatus, "Solved", StringComparison.OrdinalIgnoreCase) ||
                          string.Equals(prevStatus, "Done", StringComparison.OrdinalIgnoreCase)) &&
@@ -229,7 +201,6 @@ namespace OpenProductivity.Web.Services
                     }
                 }
 
-                // multiple In Progress loops
                 if (string.Equals(status, "In Progress", StringComparison.OrdinalIgnoreCase))
                 {
                     if (seenInProgress) reworkCount++;
@@ -244,10 +215,9 @@ namespace OpenProductivity.Web.Services
 
         public async Task<List<string>> GetAvailableGoalPeriodsAsync(int projectId, CancellationToken cancellationToken = default)
         {
-            // Assume you have a DbContext _context with WorkPackages table
             var periods = await _context.WorkPackages
                 .Where(wp => wp.ProjectId == projectId)
-                .Select(wp => wp.GoalPeriod) // this should match your work package column
+                .Select(wp => wp.GoalPeriod)
                 .Distinct()
                 .OrderBy(p => p)
                 .ToListAsync(cancellationToken);

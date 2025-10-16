@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - OpenProject Data Mining</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.20/dist/full.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
@@ -21,7 +22,7 @@
             <a href="#" class="text-xl font-bold text-blue-600">📈 OpenProject</a>
 
         </div>
-        <nav class="mt-6">
+        <nav class="mt-6" >
             <ul>
                 <li class="p-4">
                     <a href="/Dashboard/Index"
@@ -45,8 +46,8 @@
     <!-- Main content -->
     <div id="main-content" class="flex-1 flex flex-col min-h-screen transition-all duration-300 ml-64">
         <!-- Header -->
-        <header class="bg-white shadow-md flex items-center justify-between px-6 py-4">
-            <button onclick="toggleSidebar()" class="text-gray-700 text-2xl">
+        <header class="bg-white shadow-md flex items-center justify-between px-6 py-4"  style="background-color:#1A1C20;">
+            <button onclick="toggleSidebar()" class="text-white text-2xl">
                 ☰
             </button>
             <span class="text-xl font-bold text-blue-600">@ViewData["Title"]</span>
@@ -54,14 +55,14 @@
                 @Html.AntiForgeryToken()
                 <button type="submit"
                     class="flex items-center space-x-1 text-gray-700 hover:text-red-600 text-lg font-medium transition bg-transparent border-none p-0">
-                    <span>🚪 Sign Out</span>
+                    <span>Sign Out</span>
                     <span class="sr-only">Sign Out</span>
                 </button>
             </form>
         </header>
 
         <!-- Body -->
-        <main class="container mx-auto px-6 py-8 flex-1">
+        <main class="container mx-auto px-6 py-8 flex-1" >
             @RenderBody()
         </main>
 
