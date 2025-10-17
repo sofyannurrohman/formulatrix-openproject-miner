@@ -155,7 +155,8 @@ namespace OpenProductivity.Web.Services
                 .ToList();
 
             if (!doneTimestamps.Any()) return null;
-            if (!inProgressTimestamps.Any()) return (doneTimestamps.Min() - wp.CreatedAt).TotalDays;
+            if (!inProgressTimestamps.Any()) return (doneTimestamps.Min() - activities[0].Timestamp).TotalDays;
+            // if (!inProgressTimestamps.Any()) return (doneTimestamps.Min() - wp.CreatedAt).TotalDays;
 
             var durations = new List<double>();
             foreach (var inProg in inProgressTimestamps)
