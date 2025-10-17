@@ -67,10 +67,8 @@
                         <td class="text-center">@member.ReworkCount</td>
                         <td class="text-center">
                             <button class="btn btn-sm bg-black text-white view-task-btn hover:bg-orange-500 hover:text-black"
-                                data-member-id="@member.MemberId"
-                                data-member-name="@member.MemberName"
-                                data-project-id="@selectedProjectId"
-                                data-goal-period="@selectedGoalPeriod">
+                                data-member-id="@member.MemberId" data-member-name="@member.MemberName"
+                                data-project-id="@selectedProjectId" data-goal-period="@selectedGoalPeriod">
                                 View Task
                             </button>
                         </td>
@@ -115,7 +113,7 @@ else if (selectedProjectId != null && selectedGoalPeriod != null)
             });
 
             // Handle View Task button click
-            $('.view-task-btn').click(function () {
+            $(document).on('click', '.view-task-btn', function () {
                 var memberId = $(this).data('member-id');
                 var memberName = $(this).data('member-name');
                 var projectId = $(this).data('project-id');
@@ -144,6 +142,7 @@ else if (selectedProjectId != null && selectedGoalPeriod != null)
                 });
             });
 
+
             // Close modal
             $('#closeModal').click(function () {
                 $('#taskDetailModal').removeClass('flex').addClass('hidden');
@@ -154,23 +153,27 @@ else if (selectedProjectId != null && selectedGoalPeriod != null)
 }
 
 <style>
-/* Custom scrollbar for modal */
-.custom-scrollbar::-webkit-scrollbar {
-    width: 8px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 9999px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #F0A500;
-    border-radius: 9999px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #F0A500;
-}
-.custom-scrollbar {
-    scrollbar-width: thin;
-    scrollbar-color: #F0A500 #f1f1f1;
-}
+    /* Custom scrollbar for modal */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 9999px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #F0A500;
+        border-radius: 9999px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #F0A500;
+    }
+
+    .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: #F0A500 #f1f1f1;
+    }
 </style>
